@@ -1,0 +1,349 @@
+/**
+ * @author pinkasfeld joseph
+ * Copyright (c) Aldebaran Robotics 2010 All Rights Reserved.
+ */
+
+#include "allaser.h"
+
+#include <iostream>
+#include <alcommon/alproxy.h>
+#include <alproxies/almemoryproxy.h>
+#include <alcore/alptr.h>
+#include <alcommon/albroker.h>
+#include <alcommon/almodule.h>
+
+#include <pthread.h>
+#include <signal.h>
+#include <math.h>
+#include <rttools/rtprintf.h>
+
+#include <altools/altimeval.h>
+
+#if defined (__linux__)
+#include <sys/prctl.h>
+#endif
+
+extern "C" {
+# include "urg_ctrl.h"
+# include "scip_handler.h"
+}
+
+#define MODE_ON 0
+#define MODE_OFF 1
+#define SEND_MODE_ON 2
+#define SEND_MODE_OFF 3
+
+#define MIDDLE_ANGLE 384
+#define DEFAULT_MIN_ANGLE 43
+#define DEFAULT_MAX_ANGLE 725
+#define MIN_ANGLE_LASER 43
+#define MAX_ANGLE_LASER 725
+#define RESOLUTION_LASER 1024
+#define MIN_LENGTH_LASER 20
+#define MAX_LENGTH_LASER 5600
+
+
+#include <sys/time.h>
+
+using namespace AL;
+using namespace std;
+pthread_t urgThreadId;
+ALPtr<ALMemoryProxy> gSTM;
+static int mode = MODE_ON;
+static urg_t urg;
+static int angle_min = DEFAULT_MIN_ANGLE;
+static int angle_max = DEFAULT_MAX_ANGLE;
+static int length_min = MIN_LENGTH_LASER;
+static int length_max = MAX_LENGTH_LASER;
+
+static void urg_exit(urg_t *urg, const char *message) {
+  rtprintf("%s: %s\n", message, urg_getError(urg));
+  urg_disconnect(urg);
+  rtprintf("ALLaser : urg_exit\n");
+  pthread_exit((void *)NULL);
+}
+
+#define URG_DEFAULT_SPEED (19200)
+#define URG_FAST_SPEED (500000)
+
+void * urgThread(void * arg) {
+
+#if defined (__linux__)
+  // thread name
+  prctl(PR_SET_NAME, "ALLaser::urgThread", 0, 0, 0);
+#endif
+
+  ALValue urgdata;
+  long *data = NULL;
+  int data_max;
+  int ret;
+  int n;
+  int i,imemory,refTime,end,sampleTime, beginThread;
+  std::string valueName="Device/Laser/Value";
+
+  /* Connection */
+
+  connectToLaser();
+
+  /* Reserve the Receive data buffer */
+  data_max = urg_getDataMax(&urg);
+  data = (long*)malloc(sizeof(long) * data_max);
+  if (data == NULL) {
+    perror("data buffer");
+    pthread_exit((void *)NULL);
+  }
+  /* prepare ALValue for ALMemory*/
+  urgdata.arraySetSize(data_max);
+  for (i=0; i< data_max;i++)
+  {
+    urgdata[i].arraySetSize(4);
+    urgdata[i][0]= (int)0;
+    urgdata[i][1]= (double)0.0;
+    urgdata[i][2]= (int)0;
+    urgdata[i][3]= (int)0;
+    //urgdata[i][4]= (int)0;
+  }
+  /* insert ALvalue in ALMemory*/
+
+  gSTM->insertData(valueName,urgdata);
+
+  gSTM->insertData("Device/Laser/LaserEnable",(bool)1);
+  gSTM->insertData("Device/Laser/MinAngle",(float)((2.0 * M_PI)*(DEFAULT_MIN_ANGLE - MIDDLE_ANGLE) / RESOLUTION_LASER));
+  gSTM->insertData("Device/Laser/MaxAngle",(float)((2.0 * M_PI)*(DEFAULT_MAX_ANGLE - MIDDLE_ANGLE) / RESOLUTION_LASER));
+  gSTM->insertData("Device/Laser/MinLength",(float)(length_min));
+  gSTM->insertData("Device/Laser/MaxLength",(float)(length_max));
+
+  printf("ALLASER Running\n");
+
+  while(1)
+  {
+    if(mode==SEND_MODE_ON){
+      ret = urg_laserOn(&urg);
+      if (ret < 0) {
+        urg_exit(&urg, "urg_requestData()");
+      }
+      mode=MODE_ON;
+      /* Connection */
+      connectToLaser();
+    }
+    if(mode==SEND_MODE_OFF){
+      scip_qt(&urg.serial_, NULL, ScipNoWaitReply);
+      mode=MODE_OFF;
+    }
+    if(mode==MODE_ON){
+      /* Request Data using GD-Command */
+      ret = urg_requestData(&urg, URG_GD, angle_min, angle_max);
+      if (ret < 0) {
+        urg_exit(&urg, "urg_requestData()");
+      }
+
+      refTime = getLocalTime();
+      /* Obtain Data */
+      n = urg_receiveData(&urg, data, data_max);
+      if (n < 0) {
+        urg_exit(&urg, "urg_receiveData()");
+      }
+      end= getLocalTime();
+      sampleTime=end-refTime;
+
+      imemory=0;
+      for (i = 0; i < n; ++i) {
+        int x, y;
+        double angle=index2rad(i);
+        int length = data[i];
+
+        if((length>=length_min)&&(length<=length_max)){
+          x = (int)((double)length * cos(angle));
+          y = (int)((double)length * sin(angle));
+          urgdata[imemory][0]= length;
+          urgdata[imemory][1]= angle;
+          urgdata[imemory][2]= x;
+          urgdata[imemory][3]= y;
+          //urgdata[imemory][4]= refTime+i*sampleTime/data_max;
+          imemory++;
+        }
+      }
+      for(;imemory<data_max;imemory++){
+        urgdata[imemory][0]= 0;
+        urgdata[imemory][1]= 0;
+        urgdata[imemory][2]= 0;
+        urgdata[imemory][3]= 0;
+        //urgdata[imemory][4]= 0;
+      }
+      gSTM->insertData(valueName,urgdata);
+      usleep(1000);
+    }else{
+      usleep(10000);
+    }
+  }
+  urg_disconnect(&urg);
+
+  free(data);
+}
+
+
+
+//______________________________________________
+// constructor
+//______________________________________________
+ALLaser::ALLaser(ALPtr<ALBroker> pBroker, const std::string& pName ): ALModule(pBroker, pName )
+{
+  setModuleDescription( "Allow control over Hokuyo laser when available on Nao's head." );
+
+  functionName("laserOFF", "ALLaser", "Disable laser light");
+  BIND_METHOD( ALLaser::laserOFF );
+
+  functionName("laserON", "ALLaser", "Enable laser light and sampling");
+  BIND_METHOD( ALLaser::laserON );
+
+  functionName("setOpeningAngle", "ALLaser", "Set openning angle of the laser");
+  addParam("angle_min_f", "float containing the min value in rad, this value must be upper than -2.35619449 ");
+  addParam("angle_max_f", "float containing the max value in rad, this value must be lower than 2.092349795 ");
+  addMethodExample( "python",
+        "# Set the opening angle at -90/90 degres\n"
+        "laser = ALProxy(\"ALLaser\",\"127.0.0.1\",9559)\n"
+        "laser.setOpeningAngle(-1.570796327,1.570796327)\n"
+      );
+  BIND_METHOD( ALLaser::setOpeningAngle );
+
+  functionName("setDetectingLength", "ALLaser", "Set detection threshold of the laser");
+  addParam("length_min_l", "int containing the min length that the laser will detect(mm), this value must be upper than 20 mm");
+  addParam("length_max_l", "int containing the max length that the laser will detect(mm), this value must be lower than 5600 mm");
+  addMethodExample( "python",
+        "# Set detection threshold at 500/3000 mm\n"
+        "laser = ALProxy(\"ALLaser\",\"127.0.0.1\",9559)\n"
+        "laser.setDetectingLength(500,3000)\n"
+      );
+  BIND_METHOD( ALLaser::setDetectingLength );
+
+  // get broker on DCM and ALMemory
+  try {
+    gSTM = getParentBroker()->getMemoryProxy();
+    std::cout << "LASER proxy to STM created \n";
+  } catch(ALError& e) {
+    std::cout << "LASER could not connect to Memory. Error : " << e.toString() << endl;
+  }
+
+  pthread_create(&urgThreadId, NULL, urgThread, NULL);
+}
+
+//______________________________________________
+// destructor
+//______________________________________________
+ALLaser::~ALLaser()
+{
+  pthread_cancel(urgThreadId);
+}
+
+void ALLaser::laserOFF(void){
+  mode = SEND_MODE_OFF;
+  gSTM->insertData("Device/Laser/LaserEnable",(bool)0);
+}
+
+void ALLaser::laserON(void){
+  mode = SEND_MODE_ON;
+  gSTM->insertData("Device/Laser/LaserEnable",(bool)1);
+}
+
+void ALLaser::setOpeningAngle(const AL::ALValue& angle_min_f, const AL::ALValue& angle_max_f){
+  angle_min = MIDDLE_ANGLE + (int)(RESOLUTION_LASER*(float)angle_min_f / (2.0 * M_PI));
+  angle_max = MIDDLE_ANGLE + (int)(RESOLUTION_LASER*(float)angle_max_f / (2.0 * M_PI));
+  if(angle_min<MIN_ANGLE_LASER) angle_min = MIN_ANGLE_LASER;
+  if(angle_max>MAX_ANGLE_LASER) angle_max = MAX_ANGLE_LASER;
+  if(angle_min>=angle_max){
+    angle_min = MIN_ANGLE_LASER;
+    angle_max = MAX_ANGLE_LASER;
+  }
+  gSTM->insertData("Device/Laser/MinAngle",(float)((2.0 * M_PI) *(angle_min - MIDDLE_ANGLE) / RESOLUTION_LASER));
+  gSTM->insertData("Device/Laser/MaxAngle",(float)((2.0 * M_PI) *(angle_max - MIDDLE_ANGLE) / RESOLUTION_LASER));
+}
+
+void ALLaser::setDetectingLength(const AL::ALValue& length_min_l,const AL::ALValue& length_max_l){
+  length_min=(int)length_min_l;
+  length_max=(int)length_max_l;
+  if(length_min<MIN_LENGTH_LASER) length_min = MIN_LENGTH_LASER;
+  if(length_max>MAX_LENGTH_LASER) length_min = MAX_LENGTH_LASER;
+  if(length_min>=length_max){
+    length_min = MIN_LENGTH_LASER;
+    length_max = MAX_LENGTH_LASER;
+  }
+  gSTM->insertData("Device/Laser/MinLength",(int)length_min);
+  gSTM->insertData("Device/Laser/MaxLength",(int)length_max);
+}
+
+
+//_________________________________________________
+// Service functions
+//_________________________________________________
+
+void connectToLaser(void){
+  //const char device[] = "COM3"; /* Example when using Windows  */
+  const char deviceACM[] = "/dev/ttyACM0"; /* Example when using Linux  */
+  const char deviceUSB[] = "/dev/ttyUSB0"; /* Example when using Linux  */
+  int ret;
+
+  ret = urg_connect(&urg, deviceUSB, URG_DEFAULT_SPEED);
+  if (ret < 0)
+  {
+    rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceUSB,URG_DEFAULT_SPEED, urg_getError(&urg));
+    ret = urg_connect(&urg, deviceUSB, URG_FAST_SPEED);
+    if (ret < 0)
+    {
+      rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceUSB,URG_FAST_SPEED, urg_getError(&urg));
+      ret = urg_connect(&urg, deviceACM, URG_DEFAULT_SPEED);
+      if (ret < 0)
+      {
+        rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceACM,URG_DEFAULT_SPEED, urg_getError(&urg));
+        ret = urg_connect(&urg, deviceACM, URG_FAST_SPEED);
+        if (ret < 0)
+        {
+          rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceACM,URG_FAST_SPEED, urg_getError(&urg));
+          pthread_exit((void *)NULL);
+        }
+      }
+      else
+      {
+        scip_ss(&urg.serial_, URG_FAST_SPEED);
+        urg_disconnect(&urg);
+        ret = urg_connect(&urg, deviceACM, URG_FAST_SPEED);
+        if (ret < 0)
+        {
+          rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceACM,URG_FAST_SPEED, urg_getError(&urg));
+          pthread_exit((void *)NULL);
+        }
+      }
+    }
+  }
+  else
+  {
+    /*switch to full speed*/
+    scip_ss(&urg.serial_, URG_FAST_SPEED);
+    urg_disconnect(&urg);
+    ret = urg_connect(&urg, deviceUSB, URG_FAST_SPEED);
+    if (ret < 0)
+    {
+      rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceUSB,URG_FAST_SPEED, urg_getError(&urg));
+      pthread_exit((void *)NULL);
+    }
+  }
+}
+
+uInt32 getLocalTime(void){
+  struct timeval tv;
+  uInt32 val;
+
+  gettimeofday(&tv, NULL);
+
+  val = (uInt32)((uInt32)(tv.tv_usec/1000) + (uInt32)(tv.tv_sec*1000));
+  //std::cout << val << std::endl;
+  // Time in ms
+  return val;
+}
+
+double index2rad(int index){
+
+  double radian = (2.0 * M_PI) *
+                  (index - MIDDLE_ANGLE + angle_min) / RESOLUTION_LASER;
+
+  return radian;
+}
