@@ -1,6 +1,6 @@
 /**
  * @author pinkasfeld joseph
- * Copyright (c) Aldebaran Robotics 2010 All Rights Reserved.
+ * Copyright (c) Aldebaran Robotics 2010, 2011 All Rights Reserved.
  */
 
 #include "allaser.h"
@@ -57,7 +57,7 @@ static int length_min = MIN_LENGTH_LASER;
 static int length_max = MAX_LENGTH_LASER;
 
 static void urg_exit(urg_t *urg, const char *message) {
-  rtprintf("%s: %s\n", message, urg_getError(urg));
+  rtprintf("%s: %s\n", message, urg_error(urg));
   urg_disconnect(urg);
   rtprintf("ALLaser : urg_exit\n");
   pthread_exit((void *)NULL);
@@ -86,7 +86,7 @@ void * urgThread(void * arg) {
   connectToLaser();
 
   /* Reserve the Receive data buffer */
-  data_max = urg_getDataMax(&urg);
+  data_max = urg_dataMax(&urg);
   data = (long*)malloc(sizeof(long) * data_max);
   if (data == NULL) {
     perror("data buffer");
@@ -285,19 +285,19 @@ void connectToLaser(void){
   ret = urg_connect(&urg, deviceUSB, URG_DEFAULT_SPEED);
   if (ret < 0)
   {
-    rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceUSB,URG_DEFAULT_SPEED, urg_getError(&urg));
+    rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceUSB,URG_DEFAULT_SPEED, urg_error(&urg));
     ret = urg_connect(&urg, deviceUSB, URG_FAST_SPEED);
     if (ret < 0)
     {
-      rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceUSB,URG_FAST_SPEED, urg_getError(&urg));
+      rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceUSB,URG_FAST_SPEED, urg_error(&urg));
       ret = urg_connect(&urg, deviceACM, URG_DEFAULT_SPEED);
       if (ret < 0)
       {
-        rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceACM,URG_DEFAULT_SPEED, urg_getError(&urg));
+        rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceACM,URG_DEFAULT_SPEED, urg_error(&urg));
         ret = urg_connect(&urg, deviceACM, URG_FAST_SPEED);
         if (ret < 0)
         {
-          rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceACM,URG_FAST_SPEED, urg_getError(&urg));
+          rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceACM,URG_FAST_SPEED, urg_error(&urg));
           pthread_exit((void *)NULL);
         }
       }
@@ -308,7 +308,7 @@ void connectToLaser(void){
         ret = urg_connect(&urg, deviceACM, URG_FAST_SPEED);
         if (ret < 0)
         {
-          rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceACM,URG_FAST_SPEED, urg_getError(&urg));
+          rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceACM,URG_FAST_SPEED, urg_error(&urg));
           pthread_exit((void *)NULL);
         }
       }
@@ -322,7 +322,7 @@ void connectToLaser(void){
     ret = urg_connect(&urg, deviceUSB, URG_FAST_SPEED);
     if (ret < 0)
     {
-      rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceUSB,URG_FAST_SPEED, urg_getError(&urg));
+      rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceUSB,URG_FAST_SPEED, urg_error(&urg));
       pthread_exit((void *)NULL);
     }
   }
