@@ -23,7 +23,7 @@ class ALLaser : public AL::ALModule
     /**
      * Default Constructor.
      */
-    ALLaser(AL::ALPtr<AL::ALBroker> pBroker, const std::string& pName );
+    ALLaser(boost::shared_ptr<AL::ALBroker> pBroker, const std::string& pName );
 
     /**
      * Destructor.

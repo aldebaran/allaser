@@ -48,7 +48,7 @@ extern "C" {
 using namespace AL;
 using namespace std;
 pthread_t urgThreadId;
-ALPtr<ALMemoryProxy> gSTM;
+boost::shared_ptr<ALMemoryProxy> gSTM;
 static int mode = MODE_ON;
 static urg_t urg;
 static int angle_min = DEFAULT_MIN_ANGLE;
@@ -186,7 +186,7 @@ void * urgThread(void * arg) {
 //______________________________________________
 // constructor
 //______________________________________________
-ALLaser::ALLaser(ALPtr<ALBroker> pBroker, const std::string& pName ): ALModule(pBroker, pName )
+ALLaser::ALLaser(boost::shared_ptr<ALBroker> pBroker, const std::string& pName ): ALModule(pBroker, pName )
 {
   setModuleDescription( "Allow control over Hokuyo laser when available on Nao's head." );
 

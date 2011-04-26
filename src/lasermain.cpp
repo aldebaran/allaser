@@ -32,7 +32,7 @@ using namespace AL;
 
 extern "C"
 {
-ALCALL int _createModule( ALPtr<ALBroker> pBroker )
+ALCALL int _createModule( boost::shared_ptr<ALBroker> pBroker )
 {
   // init broker with the main broker instance
   // from the parent executable
