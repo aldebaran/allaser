@@ -6,7 +6,7 @@
 #ifndef ALLaser_H
 #define ALLaser_H
 
-#include <alcore/alptr.h>
+#include <boost/shared_ptr.hpp>
 #include <alcommon/almodule.h>
 
 namespace AL

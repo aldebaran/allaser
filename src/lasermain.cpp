@@ -8,7 +8,7 @@
 #include <signal.h>
 #endif
 
-#include <alcore/alptr.h>
+#include <boost/shared_ptr.hpp>
 #include <alcommon/albroker.h>
 #include <alcommon/almodule.h>
 #include <alcommon/albrokermanager.h>
