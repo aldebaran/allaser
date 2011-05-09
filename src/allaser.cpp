@@ -328,13 +328,13 @@ void connectToLaser(void){
   }
 }
 
-uInt32 getLocalTime(void){
+unsigned int getLocalTime(void){
   struct timeval tv;
-  uInt32 val;
+  unsigned int val;
 
   gettimeofday(&tv, NULL);
 
-  val = (uInt32)((uInt32)(tv.tv_usec/1000) + (uInt32)(tv.tv_sec*1000));
+  val = (unsigned int)((unsigned int)(tv.tv_usec/1000) + (unsigned int)(tv.tv_sec*1000));
   //std::cout << val << std::endl;
   // Time in ms
   return val;

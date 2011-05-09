@@ -53,7 +53,7 @@ class ALLaser : public AL::ALModule
 };
 
 void connectToLaser(void);
-uInt32 getLocalTime(void);
+unsigned int getLocalTime(void);
 double index2rad(int index);
 
 #endif // ALLaser_H
