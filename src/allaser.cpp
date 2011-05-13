@@ -17,8 +17,6 @@
 #include <math.h>
 #include <rttools/rtprintf.h>
 
-#include <altools/altimeval.h>
-
 #if defined (__linux__)
 #include <sys/prctl.h>
 #endif
