@@ -219,7 +219,6 @@ ALLaser::ALLaser(boost::shared_ptr<ALBroker> pBroker, const std::string& pName )
   // get broker on DCM and ALMemory
   try {
     gSTM = getParentBroker()->getMemoryProxy();
-    std::cout << "LASER proxy to STM created \n";
   } catch(ALError& e) {
     std::cout << "LASER could not connect to Memory. Error : " << e.toString() << endl;
   }
