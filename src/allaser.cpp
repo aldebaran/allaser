@@ -15,7 +15,8 @@
 #include <pthread.h>
 #include <signal.h>
 #include <math.h>
-#include <rttools/rtprintf.h>
+
+#include <qi/log.hpp>
 
 #include <altools/altimeval.h>
 
@@ -57,9 +58,9 @@ static int length_min = MIN_LENGTH_LASER;
 static int length_max = MAX_LENGTH_LASER;
 
 static void urg_exit(urg_t *urg, const char *message) {
-  rtprintf("%s: %s\n", message, urg_error(urg));
+  qiLogInfo("ALLaser", "%s: %s\n", message, urg_error(urg));
   urg_disconnect(urg);
-  rtprintf("ALLaser : urg_exit\n");
+  qiLogInfo("ALLaser", "ALLaser : urg_exit\n");
   pthread_exit((void *)NULL);
 }
 
@@ -101,7 +102,6 @@ void * urgThread(void * arg) {
     urgdata[i][1]= (double)0.0;
     urgdata[i][2]= (int)0;
     urgdata[i][3]= (int)0;
-    //urgdata[i][4]= (int)0;
   }
   /* insert ALvalue in ALMemory*/
 
@@ -159,7 +159,6 @@ void * urgThread(void * arg) {
           urgdata[imemory][1]= angle;
           urgdata[imemory][2]= x;
           urgdata[imemory][3]= y;
-          //urgdata[imemory][4]= refTime+i*sampleTime/data_max;
           imemory++;
         }
       }
@@ -168,7 +167,6 @@ void * urgThread(void * arg) {
         urgdata[imemory][1]= 0;
         urgdata[imemory][2]= 0;
         urgdata[imemory][3]= 0;
-        //urgdata[imemory][4]= 0;
       }
       gSTM->insertData(valueName,urgdata);
       usleep(1000);
@@ -285,19 +283,19 @@ void connectToLaser(void){
   ret = urg_connect(&urg, deviceUSB, URG_DEFAULT_SPEED);
   if (ret < 0)
   {
-    rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceUSB,URG_DEFAULT_SPEED, urg_error(&urg));
+    qiLogInfo("ALLaser", "ALLaser : Fail connecting to %s at %d: %s\n",deviceUSB,URG_DEFAULT_SPEED, urg_error(&urg));
     ret = urg_connect(&urg, deviceUSB, URG_FAST_SPEED);
     if (ret < 0)
     {
-      rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceUSB,URG_FAST_SPEED, urg_error(&urg));
+      qiLogInfo("ALLaser", "ALLaser : Fail connecting to %s at %d: %s\n",deviceUSB,URG_FAST_SPEED, urg_error(&urg));
       ret = urg_connect(&urg, deviceACM, URG_DEFAULT_SPEED);
       if (ret < 0)
       {
-        rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceACM,URG_DEFAULT_SPEED, urg_error(&urg));
+        qiLogInfo("ALLaser", "ALLaser : Fail connecting to %s at %d: %s\n",deviceACM,URG_DEFAULT_SPEED, urg_error(&urg));
         ret = urg_connect(&urg, deviceACM, URG_FAST_SPEED);
         if (ret < 0)
         {
-          rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceACM,URG_FAST_SPEED, urg_error(&urg));
+          qiLogInfo("ALLaser", "ALLaser : Fail connecting to %s at %d: %s\n",deviceACM,URG_FAST_SPEED, urg_error(&urg));
           pthread_exit((void *)NULL);
         }
       }
@@ -308,7 +306,7 @@ void connectToLaser(void){
         ret = urg_connect(&urg, deviceACM, URG_FAST_SPEED);
         if (ret < 0)
         {
-          rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceACM,URG_FAST_SPEED, urg_error(&urg));
+          qiLogInfo("ALLaser", "ALLaser : Fail connecting to %s at %d: %s\n",deviceACM,URG_FAST_SPEED, urg_error(&urg));
           pthread_exit((void *)NULL);
         }
       }
@@ -322,7 +320,7 @@ void connectToLaser(void){
     ret = urg_connect(&urg, deviceUSB, URG_FAST_SPEED);
     if (ret < 0)
     {
-      rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceUSB,URG_FAST_SPEED, urg_error(&urg));
+      qiLogInfo("ALLaser", "ALLaser : Fail connecting to %s at %d: %s\n",deviceUSB,URG_FAST_SPEED, urg_error(&urg));
       pthread_exit((void *)NULL);
     }
   }
@@ -335,7 +333,7 @@ unsigned int getLocalTime(void){
   gettimeofday(&tv, NULL);
 
   val = (unsigned int)((unsigned int)(tv.tv_usec/1000) + (unsigned int)(tv.tv_sec*1000));
-  //std::cout << val << std::endl;
+
   // Time in ms
   return val;
 }
