@@ -11,7 +11,6 @@
 #include <boost/shared_ptr.hpp>
 #include <alcommon/albroker.h>
 #include <alcommon/almodule.h>
-#include <stringstream>
 
 #include <pthread.h>
 #include <signal.h>
@@ -284,9 +283,9 @@ void connectToLaser(void){
   ret = urg_connect(&urg, deviceUSB, URG_DEFAULT_SPEED);
   if (ret < 0)
   {
-	std::stringstream ss;
+        std::stringstream ss;
 	ss << "ALLaser: Connection failure to " << deviceUSB << " at " << URG_DEFAULT_SPEED << ". " << urg_error(&urg);
-	asldebug << ss.str();
+        alsdebug << ss.str();
 	
     //alsdebug << "ALLaser : Fail connecting to %s at %d: %s\n", deviceUSB, URG_DEFAULT_SPEED, urg_error(&urg));
     ret = urg_connect(&urg, deviceUSB, URG_FAST_SPEED);
@@ -294,7 +293,7 @@ void connectToLaser(void){
     {
 	  std::stringstream ss;
 	  ss << "ALLaser: Connection failure to " << deviceUSB << " at " << URG_FAST_SPEED << ". " << urg_error(&urg);
-	  asldebug << ss.str();
+          alsdebug << ss.str();
 	
       //rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceUSB,URG_FAST_SPEED, urg_error(&urg));
       ret = urg_connect(&urg, deviceACM, URG_DEFAULT_SPEED);
@@ -302,7 +301,7 @@ void connectToLaser(void){
       {
 	    std::stringstream ss;
 	    ss << "ALLaser: Connection failure to " << deviceACM << " at " << URG_DEFAULT_SPEED << ". " << urg_error(&urg);
-	    asldebug << ss.str();
+            alsdebug << ss.str();
 	  
         //rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceACM,URG_DEFAULT_SPEED, urg_error(&urg));
         ret = urg_connect(&urg, deviceACM, URG_FAST_SPEED);
@@ -310,7 +309,7 @@ void connectToLaser(void){
         {
 		  std::stringstream ss;
 	      ss << "ALLaser: Connection failure to " << deviceACM << " at " << URG_FAST_SPEED << ". " << urg_error(&urg);
-	      asldebug << ss.str();
+              alsdebug << ss.str();
 		
           //rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceACM,URG_FAST_SPEED, urg_error(&urg));
           pthread_exit((void *)NULL);
@@ -325,7 +324,7 @@ void connectToLaser(void){
         {
 		  std::stringstream ss;
 	      ss << "ALLaser: Disconnect failure from " << deviceACM << " at " << URG_FAST_SPEED << ". " << urg_error(&urg);
-	      asldebug << ss.str();
+              alsdebug << ss.str();
 		  
           //rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceACM,URG_FAST_SPEED, urg_error(&urg));
           pthread_exit((void *)NULL);
@@ -343,7 +342,7 @@ void connectToLaser(void){
     {
 	  std::stringstream ss;
 	  ss << "ALLaser: Disconnect failure from " << deviceUSB << " at " << URG_FAST_SPEED << ". " << urg_error(&urg);
-	  asldebug << ss.str();
+          alsdebug << ss.str();
 		  
       //rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceUSB,URG_FAST_SPEED, urg_error(&urg));
       pthread_exit((void *)NULL);
