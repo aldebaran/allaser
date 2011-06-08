@@ -11,7 +11,6 @@
 #include <boost/shared_ptr.hpp>
 #include <alcommon/albroker.h>
 #include <alcommon/almodule.h>
-#include <allog/allog.h>
 #include <sstream>
 
 #include <pthread.h>
@@ -218,7 +217,7 @@ ALLaser::ALLaser(boost::shared_ptr<ALBroker> pBroker, const std::string& pName )
   try {
     gSTM = getParentBroker()->getMemoryProxy();
   } catch(ALError& e) {
-    alserror << "ALLASER: could not connect to Memory. Error: " << e.what() << std::endl;
+    qiLogError("allog.error") << "ALLASER: could not connect to Memory. Error: " << e.what() << std::endl;
   }
 
   pthread_create(&urgThreadId, NULL, urgThread, NULL);
@@ -285,7 +284,7 @@ void connectToLaser(void){
     std::stringstream ss;
     ss << "ALLaser: Connection failure to " << deviceUSB << " at " << URG_DEFAULT_SPEED << ". " << urg_error(&urg);
     qiLogDebug("ALLaser") << ss.str() << std::endl;
-	
+
     ret = urg_connect(&urg, deviceUSB, URG_FAST_SPEED);
     if (ret < 0)
     {
@@ -299,14 +298,14 @@ void connectToLaser(void){
 	    std::stringstream ss;
 	    ss << "ALLaser: Connection failure to " << deviceACM << " at " << URG_DEFAULT_SPEED << ". " << urg_error(&urg);
 	    qiLogDebug("ALLaser") << ss.str() << std::endl;
-	  
+
         ret = urg_connect(&urg, deviceACM, URG_FAST_SPEED);
         if (ret < 0)
         {
 	      std::stringstream ss;
 	      ss << "ALLaser: Connection failure to " << deviceACM << " at " << URG_FAST_SPEED << ". " << urg_error(&urg);
 	      qiLogDebug("ALLaser") << ss.str() << std::endl;
-		
+
           //rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceACM,URG_FAST_SPEED, urg_error(&urg));
           pthread_exit((void *)NULL);
         }
@@ -321,7 +320,7 @@ void connectToLaser(void){
 	      std::stringstream ss;
 	      ss << "ALLaser: Disconnect failure from " << deviceACM << " at " << URG_FAST_SPEED << ". " << urg_error(&urg);
 	      qiLogDebug("ALLaser") << ss.str() << std::endl;
-		  
+
           pthread_exit((void *)NULL);
         }
       }
