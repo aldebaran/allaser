@@ -15,7 +15,7 @@
 
 #include <pthread.h>
 #include <signal.h>
-#include <math.h>
+#include <cmath>
 
 #include <qi/log.hpp>
 
