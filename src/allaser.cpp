@@ -16,7 +16,7 @@
 
 #include <pthread.h>
 #include <signal.h>
-#include <math.h>
+#include <cmath>
 #include <allog/allog.h>
 #include <rttools/rtprintf.h>
 
