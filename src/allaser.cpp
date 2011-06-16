@@ -57,9 +57,9 @@ static int length_min = MIN_LENGTH_LASER;
 static int length_max = MAX_LENGTH_LASER;
 
 static void urg_exit(urg_t *urg, const char *message) {
-  qiLogInfo("ALLaser", "%s: %s\n", message, urg_error(urg));
+  qiLogInfo("hardware.allaser", "%s: %s\n", message, urg_error(urg));
   urg_disconnect(urg);
-  qiLogInfo("ALLaser", "ALLaser : urg_exit\n");
+  qiLogInfo("hardware.allaser", "urg_exit\n");
   pthread_exit((void *)NULL);
 }
 
@@ -217,7 +217,7 @@ ALLaser::ALLaser(boost::shared_ptr<ALBroker> pBroker, const std::string& pName )
   try {
     gSTM = getParentBroker()->getMemoryProxy();
   } catch(ALError& e) {
-    qiLogError("allog.error") << "ALLASER: could not connect to Memory. Error: " << e.what() << std::endl;
+    qiLogError("hardware.allaser") << "Could not connect to Memory. Error: " << e.what() << std::endl;
   }
 
   pthread_create(&urgThreadId, NULL, urgThread, NULL);
@@ -282,29 +282,29 @@ void connectToLaser(void){
   if (ret < 0)
   {
     std::stringstream ss;
-    ss << "ALLaser: Connection failure to " << deviceUSB << " at " << URG_DEFAULT_SPEED << ". " << urg_error(&urg);
-    qiLogDebug("ALLaser") << ss.str() << std::endl;
+    ss << "Connection failure to " << deviceUSB << " at " << URG_DEFAULT_SPEED << ". " << urg_error(&urg);
+    qiLogDebug("hardware.allaser") << ss.str() << std::endl;
 
     ret = urg_connect(&urg, deviceUSB, URG_FAST_SPEED);
     if (ret < 0)
     {
       std::stringstream ss;
-      ss << "ALLaser: Connection failure to " << deviceUSB << " at " << URG_FAST_SPEED << ". " << urg_error(&urg);
-      qiLogDebug("ALLaser") << ss.str() << std::endl;
+      ss << "Connection failure to " << deviceUSB << " at " << URG_FAST_SPEED << ". " << urg_error(&urg);
+      qiLogDebug("hardware.allaser") << ss.str() << std::endl;
 
       ret = urg_connect(&urg, deviceACM, URG_DEFAULT_SPEED);
       if (ret < 0)
       {
 	    std::stringstream ss;
-	    ss << "ALLaser: Connection failure to " << deviceACM << " at " << URG_DEFAULT_SPEED << ". " << urg_error(&urg);
-	    qiLogDebug("ALLaser") << ss.str() << std::endl;
+	    ss << "Connection failure to " << deviceACM << " at " << URG_DEFAULT_SPEED << ". " << urg_error(&urg);
+	    qiLogDebug("hardware.allaser") << ss.str() << std::endl;
 
         ret = urg_connect(&urg, deviceACM, URG_FAST_SPEED);
         if (ret < 0)
         {
 	      std::stringstream ss;
-	      ss << "ALLaser: Connection failure to " << deviceACM << " at " << URG_FAST_SPEED << ". " << urg_error(&urg);
-	      qiLogDebug("ALLaser") << ss.str() << std::endl;
+	      ss << "Connection failure to " << deviceACM << " at " << URG_FAST_SPEED << ". " << urg_error(&urg);
+	      qiLogDebug("hardware.allaser") << ss.str() << std::endl;
 
           //rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceACM,URG_FAST_SPEED, urg_error(&urg));
           pthread_exit((void *)NULL);
@@ -318,8 +318,8 @@ void connectToLaser(void){
         if (ret < 0)
         {
 	      std::stringstream ss;
-	      ss << "ALLaser: Disconnect failure from " << deviceACM << " at " << URG_FAST_SPEED << ". " << urg_error(&urg);
-	      qiLogDebug("ALLaser") << ss.str() << std::endl;
+	      ss << "Disconnect failure from " << deviceACM << " at " << URG_FAST_SPEED << ". " << urg_error(&urg);
+	      qiLogDebug("hardware.allaser") << ss.str() << std::endl;
 
           pthread_exit((void *)NULL);
         }
@@ -335,8 +335,8 @@ void connectToLaser(void){
     if (ret < 0)
     {
 	  std::stringstream ss;
-	  ss << "ALLaser: Disconnect failure from " << deviceUSB << " at " << URG_FAST_SPEED << ". " << urg_error(&urg);
-	  qiLogDebug("ALLaser") << ss.str() << std::endl;
+	  ss << "Disconnect failure from " << deviceUSB << " at " << URG_FAST_SPEED << ". " << urg_error(&urg);
+	  qiLogDebug("hardware.allaser") << ss.str() << std::endl;
 
       pthread_exit((void *)NULL);
     }
