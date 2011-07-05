@@ -272,6 +272,68 @@ void ALLaser::setDetectingLength(const AL::ALValue& length_min_l,const AL::ALVal
 // Service functions
 //_________________________________________________
 
+
+int connectToLaserViaUSB(void) {
+  int success = -1;
+  const char deviceUSB[] = "/dev/ttyUSB0"; /* Example when using Linux  */
+  // Try to connect at low speed.
+  success = urg_connect(&urg, deviceUSB, URG_DEFAULT_SPEED);
+  if (success < 0) {
+    std::stringstream ss;
+    ss << "Connection failure to " << deviceUSB << " at " << URG_DEFAULT_SPEED << ". " << urg_error(&urg);
+    qiLogDebug("hardware.allaser") << ss.str() << std::endl;
+    return success;
+  }
+  else {
+    // Try to switch to full speed.
+    scip_ss(&urg.serial_, URG_FAST_SPEED);
+    urg_disconnect(&urg);
+    success = urg_connect(&urg, deviceUSB, URG_FAST_SPEED);
+    if (success < 0) {
+      std::stringstream ss;
+      ss << "Connection failure to " << deviceUSB << " at " << URG_FAST_SPEED << ". " << urg_error(&urg);
+      qiLogDebug("hardware.allaser") << ss.str() << std::endl;
+      // Fall back to low speed.
+      success = urg_connect(&urg, deviceUSB, URG_DEFAULT_SPEED);
+      return success;
+    }
+    else {
+      return success;
+    }
+  }
+}
+
+int connectToLaserViaACM(void) {
+  int success = -1;
+  const char deviceACM[] = "/dev/ttyACM0"; /* Example when using Linux  */
+  success = urg_connect(&urg, deviceACM, URG_DEFAULT_SPEED);
+  if (success < 0) {
+    std::stringstream ss;
+    ss << "Connection failure to " << deviceACM << " at " << URG_DEFAULT_SPEED << ". " << urg_error(&urg);
+    qiLogDebug("hardware.allaser") << ss.str() << std::endl;
+    return success;
+  }
+  else {
+    // Try to switch to full speed.
+    scip_ss(&urg.serial_, URG_FAST_SPEED);
+    urg_disconnect(&urg);
+    success = urg_connect(&urg, deviceACM, URG_FAST_SPEED);
+    if (success < 0)
+    {
+      std::stringstream ss;
+      ss << "Connection failure from " << deviceACM << " at " << URG_FAST_SPEED << ". " << urg_error(&urg);
+      qiLogDebug("hardware.allaser") << ss.str() << std::endl;
+      // Fall back to low speed.
+      success = urg_connect(&urg, deviceACM, URG_DEFAULT_SPEED);
+      return success;
+    }
+    else {
+      return success;
+    }
+  }
+}
+
+
 void connectToLaser(void){
   //const char device[] = "COM3"; /* Example when using Windows  */
   const char deviceACM[] = "/dev/ttyACM0"; /* Example when using Linux  */
