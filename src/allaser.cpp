@@ -335,73 +335,28 @@ int connectToLaserViaACM(void) {
 
 
 void connectToLaser(void){
-  //const char device[] = "COM3"; /* Example when using Windows  */
-  const char deviceACM[] = "/dev/ttyACM0"; /* Example when using Linux  */
-  const char deviceUSB[] = "/dev/ttyUSB0"; /* Example when using Linux  */
-  int ret;
-
-  ret = urg_connect(&urg, deviceUSB, URG_DEFAULT_SPEED);
-  if (ret < 0)
-  {
+  int success = connectToLaserViaUSB();
+  if (success < 0) {
     std::stringstream ss;
-    ss << "Connection failure to " << deviceUSB << " at " << URG_DEFAULT_SPEED << ". " << urg_error(&urg);
+    ss << "Connection failure to USB, trying ACM... ";
     qiLogDebug("hardware.allaser") << ss.str() << std::endl;
-
-    ret = urg_connect(&urg, deviceUSB, URG_FAST_SPEED);
-    if (ret < 0)
-    {
+    success = connectToLaserViaACM();
+    if (success < 0) {
       std::stringstream ss;
-      ss << "Connection failure to " << deviceUSB << " at " << URG_FAST_SPEED << ". " << urg_error(&urg);
+      ss << "Connection to laser failed";
       qiLogDebug("hardware.allaser") << ss.str() << std::endl;
-
-      ret = urg_connect(&urg, deviceACM, URG_DEFAULT_SPEED);
-      if (ret < 0)
-      {
-	    std::stringstream ss;
-	    ss << "Connection failure to " << deviceACM << " at " << URG_DEFAULT_SPEED << ". " << urg_error(&urg);
-	    qiLogDebug("hardware.allaser") << ss.str() << std::endl;
-
-        ret = urg_connect(&urg, deviceACM, URG_FAST_SPEED);
-        if (ret < 0)
-        {
-	      std::stringstream ss;
-	      ss << "Connection failure to " << deviceACM << " at " << URG_FAST_SPEED << ". " << urg_error(&urg);
-	      qiLogDebug("hardware.allaser") << ss.str() << std::endl;
-
-          //rtprintf("ALLaser : Fail connecting to %s at %d: %s\n",deviceACM,URG_FAST_SPEED, urg_error(&urg));
-          pthread_exit((void *)NULL);
-        }
-      }
-      else
-      {
-        scip_ss(&urg.serial_, URG_FAST_SPEED);
-        urg_disconnect(&urg);
-        ret = urg_connect(&urg, deviceACM, URG_FAST_SPEED);
-        if (ret < 0)
-        {
-	      std::stringstream ss;
-	      ss << "Disconnect failure from " << deviceACM << " at " << URG_FAST_SPEED << ". " << urg_error(&urg);
-	      qiLogDebug("hardware.allaser") << ss.str() << std::endl;
-
-          pthread_exit((void *)NULL);
-        }
-      }
-    }
-  }
-  else
-  {
-    /*switch to full speed*/
-    scip_ss(&urg.serial_, URG_FAST_SPEED);
-    urg_disconnect(&urg);
-    ret = urg_connect(&urg, deviceUSB, URG_FAST_SPEED);
-    if (ret < 0)
-    {
-	  std::stringstream ss;
-	  ss << "Disconnect failure from " << deviceUSB << " at " << URG_FAST_SPEED << ". " << urg_error(&urg);
-	  qiLogDebug("hardware.allaser") << ss.str() << std::endl;
-
       pthread_exit((void *)NULL);
     }
+    else {
+      std::stringstream ss;
+      ss << "Connection to laser via ACM";
+      qiLogDebug("hardware.allaser") << ss.str() << std::endl;
+    }
+  }
+  else {
+    std::stringstream ss;
+    ss << "Connection to laser via USB";
+    qiLogDebug("hardware.allaser") << ss.str() << std::endl;
   }
 }
 
