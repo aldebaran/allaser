@@ -112,7 +112,9 @@ void * urgThread(void * arg) {
   gSTM->insertData("Device/Laser/MinLength",(float)(length_min));
   gSTM->insertData("Device/Laser/MaxLength",(float)(length_max));
 
-  printf("ALLASER Running\n");
+  stringstream ss;
+  ss << "ALLaser running";
+  qiLogInfo("hardware.laser") << ss.str() << std::endl;
 
   while(1)
   {
