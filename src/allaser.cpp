@@ -64,7 +64,7 @@ static void urg_exit(urg_t *urg, const char *message) {
 }
 
 #define URG_DEFAULT_SPEED (19200)
-#define URG_FAST_SPEED (500000)
+#define URG_FAST_SPEED (115200)
 
 void * urgThread(void * arg) {
 
