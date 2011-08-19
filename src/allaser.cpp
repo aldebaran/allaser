@@ -34,9 +34,9 @@ extern "C" {
 #define SEND_MODE_OFF 3
 
 #define MIDDLE_ANGLE 384
-#define DEFAULT_MIN_ANGLE 43
+#define DEFAULT_MIN_ANGLE 44
 #define DEFAULT_MAX_ANGLE 725
-#define MIN_ANGLE_LASER 43
+#define MIN_ANGLE_LASER 44
 #define MAX_ANGLE_LASER 725
 #define RESOLUTION_LASER 1024
 #define MIN_LENGTH_LASER 20
@@ -88,6 +88,8 @@ void * urgThread(void * arg) {
   /* Reserve the Receive data buffer */
   data_max = urg_dataMax(&urg);
   data = (long*)malloc(sizeof(long) * data_max);
+  memset(data, 0, sizeof(long) * data_max);
+
   if (data == NULL) {
     perror("data buffer");
     pthread_exit((void *)NULL);
@@ -133,7 +135,7 @@ void * urgThread(void * arg) {
     }
     if(mode==MODE_ON){
       /* Request Data using GD-Command */
-      ret = urg_requestData(&urg, URG_GD, angle_min, angle_max);
+      ret = urg_requestData(&urg, URG_GD, URG_FIRST, URG_LAST);
       if (ret < 0) {
         urg_exit(&urg, "urg_requestData()");
       }
@@ -141,6 +143,8 @@ void * urgThread(void * arg) {
       refTime = getLocalTime();
       /* Obtain Data */
       n = urg_receiveData(&urg, data, data_max);
+      qiLogDebug("hardware.laser") << " n " << n << " expected " <<
+            angle_max - angle_min << std::endl;
       if (n < 0) {
         urg_exit(&urg, "urg_receiveData()");
       }
@@ -150,7 +154,14 @@ void * urgThread(void * arg) {
       imemory=0;
       for (i = 0; i < n; ++i) {
         int x, y;
-        double angle=index2rad(i);
+        double angle = urg_index2rad(&urg, i);
+
+        // if (i < 50) {
+          qiLogDebug("hardware.laser") << i << " angle " << angle <<
+              " urgAngle " << urg_index2rad(&urg, i) <<
+              " dist " << data[i] << std::endl;
+
+        // }
         int length = data[i];
 
         if((length>=length_min)&&(length<=length_max)){
@@ -377,7 +388,7 @@ unsigned int getLocalTime(void){
 double index2rad(int index){
 
   double radian = (2.0 * M_PI) *
-                  (index - MIDDLE_ANGLE + angle_min) / RESOLUTION_LASER;
+                  (index - MIDDLE_ANGLE) / RESOLUTION_LASER;
 
   return radian;
 }
