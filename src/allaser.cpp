@@ -108,9 +108,11 @@ void * urgThread(void * arg) {
 
   gSTM->insertData(valueName,urgdata);
 
-  gSTM->insertData("Device/Laser/LaserEnable",(bool)1);
-  gSTM->insertData("Device/Laser/MinAngle",(float)((2.0 * M_PI)*(DEFAULT_MIN_ANGLE - MIDDLE_ANGLE) / RESOLUTION_LASER));
-  gSTM->insertData("Device/Laser/MaxAngle",(float)((2.0 * M_PI)*(DEFAULT_MAX_ANGLE - MIDDLE_ANGLE) / RESOLUTION_LASER));
+  gSTM->insertData("Device/Laser/LaserEnable", (bool) 1);
+  gSTM->insertData("Device/Laser/MinAngle",(float)((2.0 * M_PI)
+          * (DEFAULT_MIN_ANGLE - MIDDLE_ANGLE) / RESOLUTION_LASER));
+  gSTM->insertData("Device/Laser/MaxAngle",(float)((2.0 * M_PI)
+          * (DEFAULT_MAX_ANGLE - MIDDLE_ANGLE) / RESOLUTION_LASER));
   gSTM->insertData("Device/Laser/MinLength",(float)(length_min));
   gSTM->insertData("Device/Laser/MaxLength",(float)(length_max));
 
@@ -156,12 +158,10 @@ void * urgThread(void * arg) {
         int x, y;
         double angle = urg_index2rad(&urg, i);
 
-        // if (i < 50) {
-          qiLogDebug("hardware.laser") << i << " angle " << angle <<
+        qiLogDebug("hardware.laser") << i << " angle " << angle <<
               " urgAngle " << urg_index2rad(&urg, i) <<
               " dist " << data[i] << std::endl;
 
-        // }
         int length = data[i];
 
         if((length>=length_min)&&(length<=length_max)){
@@ -230,7 +230,8 @@ ALLaser::ALLaser(boost::shared_ptr<ALBroker> pBroker, const std::string& pName )
   try {
     gSTM = getParentBroker()->getMemoryProxy();
   } catch(ALError& e) {
-    qiLogError("hardware.allaser") << "Could not connect to Memory. Error: " << e.what() << std::endl;
+    qiLogError("hardware.allaser")
+        << "Could not connect to Memory. Error: " << e.what() << std::endl;
   }
 
   pthread_create(&urgThreadId, NULL, urgThread, NULL);
@@ -254,20 +255,26 @@ void ALLaser::laserON(void){
   gSTM->insertData("Device/Laser/LaserEnable",(bool)1);
 }
 
-void ALLaser::setOpeningAngle(const AL::ALValue& angle_min_f, const AL::ALValue& angle_max_f){
-  angle_min = MIDDLE_ANGLE + (int)(RESOLUTION_LASER*(float)angle_min_f / (2.0 * M_PI));
-  angle_max = MIDDLE_ANGLE + (int)(RESOLUTION_LASER*(float)angle_max_f / (2.0 * M_PI));
+void ALLaser::setOpeningAngle(const AL::ALValue& angle_min_f,
+                              const AL::ALValue& angle_max_f){
+  angle_min = MIDDLE_ANGLE + (int)(RESOLUTION_LASER
+                                   * (float)angle_min_f / (2.0 * M_PI));
+  angle_max = MIDDLE_ANGLE + (int)(RESOLUTION_LASER*(float)angle_max_f
+                                   / (2.0 * M_PI));
   if(angle_min<MIN_ANGLE_LASER) angle_min = MIN_ANGLE_LASER;
   if(angle_max>MAX_ANGLE_LASER) angle_max = MAX_ANGLE_LASER;
   if(angle_min>=angle_max){
     angle_min = MIN_ANGLE_LASER;
     angle_max = MAX_ANGLE_LASER;
   }
-  gSTM->insertData("Device/Laser/MinAngle",(float)((2.0 * M_PI) *(angle_min - MIDDLE_ANGLE) / RESOLUTION_LASER));
-  gSTM->insertData("Device/Laser/MaxAngle",(float)((2.0 * M_PI) *(angle_max - MIDDLE_ANGLE) / RESOLUTION_LASER));
+  gSTM->insertData("Device/Laser/MinAngle",(float)((2.0 * M_PI)
+          * (angle_min - MIDDLE_ANGLE) / RESOLUTION_LASER));
+  gSTM->insertData("Device/Laser/MaxAngle",(float)((2.0 * M_PI)
+          * (angle_max - MIDDLE_ANGLE) / RESOLUTION_LASER));
 }
 
-void ALLaser::setDetectingLength(const AL::ALValue& length_min_l,const AL::ALValue& length_max_l){
+void ALLaser::setDetectingLength(const AL::ALValue& length_min_l,
+                                 const AL::ALValue& length_max_l){
   length_min=(int)length_min_l;
   length_max=(int)length_max_l;
   if(length_min<MIN_LENGTH_LASER) length_min = MIN_LENGTH_LASER;
@@ -293,7 +300,8 @@ int connectToLaserViaUSB(void) {
   success = urg_connect(&urg, deviceUSB, URG_DEFAULT_SPEED);
   if (success < 0) {
     std::stringstream ss;
-    ss << "Connection failure to " << deviceUSB << " at " << URG_DEFAULT_SPEED << ". " << urg_error(&urg);
+    ss << "Connection failure to " << deviceUSB << " at "
+        << URG_DEFAULT_SPEED << ". " << urg_error(&urg);
     qiLogDebug("hardware.allaser") << ss.str() << std::endl;
     return success;
   }
@@ -304,7 +312,8 @@ int connectToLaserViaUSB(void) {
     success = urg_connect(&urg, deviceUSB, URG_FAST_SPEED);
     if (success < 0) {
       std::stringstream ss;
-      ss << "Connection failure to " << deviceUSB << " at " << URG_FAST_SPEED << ". " << urg_error(&urg);
+      ss << "Connection failure to " << deviceUSB << " at "
+          << URG_FAST_SPEED << ". " << urg_error(&urg);
       qiLogDebug("hardware.allaser") << ss.str() << std::endl;
       // Fall back to low speed.
       success = urg_connect(&urg, deviceUSB, URG_DEFAULT_SPEED);
@@ -322,7 +331,8 @@ int connectToLaserViaACM(void) {
   success = urg_connect(&urg, deviceACM, URG_DEFAULT_SPEED);
   if (success < 0) {
     std::stringstream ss;
-    ss << "Connection failure to " << deviceACM << " at " << URG_DEFAULT_SPEED << ". " << urg_error(&urg);
+    ss << "Connection failure to " << deviceACM << " at "
+        << URG_DEFAULT_SPEED << ". " << urg_error(&urg);
     qiLogDebug("hardware.allaser") << ss.str() << std::endl;
     return success;
   }
@@ -334,7 +344,8 @@ int connectToLaserViaACM(void) {
     if (success < 0)
     {
       std::stringstream ss;
-      ss << "Connection failure from " << deviceACM << " at " << URG_FAST_SPEED << ". " << urg_error(&urg);
+      ss << "Connection failure from " << deviceACM << " at "
+          << URG_FAST_SPEED << ". " << urg_error(&urg);
       qiLogDebug("hardware.allaser") << ss.str() << std::endl;
       // Fall back to low speed.
       success = urg_connect(&urg, deviceACM, URG_DEFAULT_SPEED);
@@ -379,7 +390,8 @@ unsigned int getLocalTime(void){
 
   gettimeofday(&tv, NULL);
 
-  val = (unsigned int)((unsigned int)(tv.tv_usec/1000) + (unsigned int)(tv.tv_sec*1000));
+  val = (unsigned int)((unsigned int)(tv.tv_usec/1000)
+                       + (unsigned int)(tv.tv_sec*1000));
 
   // Time in ms
   return val;
