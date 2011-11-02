@@ -255,8 +255,8 @@ void ALLaser::laserON(void){
   gSTM->insertData("Device/Laser/LaserEnable",(bool)1);
 }
 
-void ALLaser::setOpeningAngle(const AL::ALValue& angle_min_f,
-                              const AL::ALValue& angle_max_f){
+void ALLaser::setOpeningAngle(const float& angle_min_f,
+                              const float& angle_max_f){
   angle_min = MIDDLE_ANGLE + (int)(RESOLUTION_LASER
                                    * (float)angle_min_f / (2.0 * M_PI));
   angle_max = MIDDLE_ANGLE + (int)(RESOLUTION_LASER*(float)angle_max_f
@@ -273,8 +273,8 @@ void ALLaser::setOpeningAngle(const AL::ALValue& angle_min_f,
           * (angle_max - MIDDLE_ANGLE) / RESOLUTION_LASER));
 }
 
-void ALLaser::setDetectingLength(const AL::ALValue& length_min_l,
-                                 const AL::ALValue& length_max_l){
+void ALLaser::setDetectingLength(const int& length_min_l,
+                                 const int& length_max_l){
   length_min=(int)length_min_l;
   length_max=(int)length_max_l;
   if(length_min<MIN_LENGTH_LASER) length_min = MIN_LENGTH_LASER;

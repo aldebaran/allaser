@@ -44,12 +44,12 @@ class ALLaser : public AL::ALModule
     /**
       * Change openning angle
       **/
-    void setOpeningAngle(const AL::ALValue& angle_min_f, const AL::ALValue& angle_max_f);
+    void setOpeningAngle(const float& angle_min_f, const float& angle_max_f);
 
     /**
       * Change detecting length
       **/
-    void setDetectingLength(const AL::ALValue& length_min_l,const AL::ALValue& length_max_l);
+    void setDetectingLength(const int& length_min_l, const int& length_max_l);
 };
 
 void connectToLaser(void);
