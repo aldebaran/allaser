@@ -164,7 +164,8 @@ void * urgThread(void * arg) {
 
         int length = data[i];
 
-        if((length>=length_min)&&(length<=length_max)){
+        if( length >= length_min && length <= length_max
+            && i >= angle_min && i <= angle_max ){
           x = (int)((double)length * cos(angle));
           y = (int)((double)length * sin(angle));
           urgdata[imemory][0]= length;
