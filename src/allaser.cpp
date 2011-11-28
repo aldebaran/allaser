@@ -87,6 +87,10 @@ void * urgThread(void * arg) {
 
   /* Reserve the Receive data buffer */
   data_max = urg_dataMax(&urg);
+  if (data_max <= 0) {
+    perror("data_max is less than 0");
+    pthread_exit((void *)NULL);
+  }
   data = (long*)malloc(sizeof(long) * data_max);
   memset(data, 0, sizeof(long) * data_max);
 
