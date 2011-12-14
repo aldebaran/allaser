@@ -1,0 +1,5 @@
+[project allaser]
+# Add your project dependencies here:
+depends = libnaoqi liburg
+
+
