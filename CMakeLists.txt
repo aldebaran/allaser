@@ -1,12 +1,6 @@
-##
-## CMakeLists.txt
-## Login : <ctaf@localhost.localdomain>
-##
-## Author(s):
-##  - Cedric GESTES <gestes@aldebaran-robotics.com>
-##
-## Copyright (C) 2009, 2011 Aldebaran Robotics
-##
+## Copyright (c) 2012 Aldebaran Robotics. All rights reserved.
+## Use of this source code is governed by a BSD-style license that can be
+## found in the COPYING file.
 
 project(ALLaser)
 cmake_minimum_required(VERSION 2.6.4 FATAL_ERROR)

@@ -1,80 +1,17 @@
-to generate aca-1.3.8-laser:
-- added libc_system libc_connection libc_urg libSDL to /usr/lib
-- add usbserial and ftdi-sio
-- tweaked i2cserial init script to modprobe usbserial ftdi-sio and launch laser_speed 19200 115200
-- tweaked naoqi init script to launch laser_speed 115200
+ALLaser
+=======
 
-====================================================
-use laser_speed /dev/ttyUSB0 19200 115200
-to set the speed from 19200 to 115200
-use laser_speed /dev/ttyUSB0 115200 before launching naoqi to wakeup the laser
-====================================================
+This module handle hokuyo sensors.
 
-laser speed:
+git repository:
+http://github.com/aldebaran/allaser
 
-/*!
-  \file
-  \brief To obtain version information
+Mailing list:
+naoqi-dev@aldebaran-robotics.com
 
-  Obtain URG's version text
+Documentation:
+http://developer.aldebaran-robotics.com/doc/1-12/naoqi/sensors/allaser-api.html
 
-  \author Satofumi KAMIMURA
-
-  $Id$
-*/
-
-#include <stdio.h>
-#include <stdlib.h>
-#include "urg_ctrl.h"
-
-
-int main(int argc, char *argv[]) {
-
-  enum {
-    LinesMax = 5,
-  };
-
-  //const char device[] = "COM3"; /* Example when using Windows */
-/*   const char device[] = "/dev/ttyUSB0"; /\* Example when using Linux *\/ */
-/*   const char device[] = "/dev/ttyACM0"; /\* Example when using Linux *\/ */
-
-  char buffer[LinesMax][UrgLineWidth];
-  char *lines[LinesMax];
-  int ret;
-  int i;
-
-  /* Connection */
-  urg_t urg;
-  ret = urg_connect(&urg, argv[1], atoi(argv[2]));
-/*   ret = urg_connect(&urg, device, 19200); */
-  if (ret < 0) {
-    printf("urg_connect: %s\n", urg_getError(&urg));
-    exit(1);
-  }
-
-  /* Obtain version information */
-  for (i = 0; i < LinesMax; ++i) {
-    lines[i] = buffer[i];
-  }
-  ret = urg_getVersionLines(&urg, lines, LinesMax);
-  printf("urg_getVersion: %s\n", urg_getError(&urg));
-  if (ret < 0) {
-    urg_disconnect(&urg);
-    exit(1);
-  }
-
-  if (argv[3])
-    scip_ss(&urg.serial_, atoi(argv[3]));
-/*   int scip_ss(serial_t *serial, long baudrate) { */
-
-
-  /* Display */
-  for (i = 0; i < LinesMax; ++i) {
-    printf("%s\n", lines[i]);
-  }
-
-  /* Disconnect */
-  urg_disconnect(&urg);
-
-  return 0;
-}
+Maintainers:
+ewirbel@aldebaran-robotics.com
+ngarcia@aldebaran-robotics.com
