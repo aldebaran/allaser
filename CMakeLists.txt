@@ -2,10 +2,9 @@
 ## Use of this source code is governed by a BSD-style license that can be
 ## found in the COPYING file.
 
+cmake_minimum_required(VERSION 2.8)
 project(ALLaser)
-cmake_minimum_required(VERSION 2.6.4 FATAL_ERROR)
-
-include("${CMAKE_CURRENT_SOURCE_DIR}/bootstrap.cmake")
+find_package(qibuild)
 
 SET(module_SRCS
   src/allaser.cpp
