@@ -21,4 +21,4 @@ SET(module_SRCS
 
 
 qi_create_lib(allaser SHARED SUBFOLDER naoqi ${module_SRCS})
-qi_use_lib(allaser ALCOMMON RTTOOLS URG)
+qi_use_lib(allaser ALCOMMON ALPROXIES RTTOOLS URG)
