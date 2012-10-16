@@ -95,10 +95,6 @@ void * urgThread(void * arg) {
   data = (long*)malloc(sizeof(long) * data_max);
   memset(data, 0, sizeof(long) * data_max);
 
-  if (data == NULL) {
-    perror("data buffer");
-    pthread_exit((void *)NULL);
-  }
   /* prepare ALValue for ALMemory*/
   urgdata.arraySetSize(data_max);
   for (i=0; i< data_max;i++)
