@@ -26,7 +26,7 @@
 
 extern "C" {
 # include "urg_ctrl.h"
-# include "scip_handler.h"
+# include "scip_handler.h" /* WARNING: private header not necessarly installed */
 }
 
 #define MODE_ON 0
