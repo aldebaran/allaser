@@ -6,7 +6,9 @@ cmake_minimum_required(VERSION 2.8)
 project(ALLaser)
 find_package(qibuild)
 
-qi_add_optional_package(URG)
+if (NOT I_AM_A_ROBOT)
+  return()
+endif()
 
 if (NOT WITH_URG)
   install(CODE "message(\"installation disabled on desktop for now\")")
